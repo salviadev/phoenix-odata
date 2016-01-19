@@ -104,7 +104,7 @@ function _parseDateTime(line: string, chars: string, i: number, tokens: Token[])
 
 
 function _parseWord(line: string, chars: string, i: number, tokens: Token[]): number {
-    
+
     let end = i + 1;
     while (end < chars.length && _isWordChar(chars[end])) {
         end++;

@@ -1,0 +1,4 @@
+.vscode
+.tscache
+/node_modules
+/src

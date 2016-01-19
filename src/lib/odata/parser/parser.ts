@@ -1,8 +1,8 @@
 "use strict";
 
-import { TokenType, tokenize, Token} from "./token";
+import { TokenType, tokenize, Token}  from "./token";
 import { Operator} from "./operators";
-import { odataFunctions } from "./functions";
+import { odataFunctions} from "./functions";
 
 
 export class Expression {
