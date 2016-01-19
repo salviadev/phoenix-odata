@@ -1,0 +1,25 @@
+{
+    "name": "phoenix-odata",
+    "description": "Odata utils",
+    "version": "0.0.1",
+    "author": "Mihai STOIE <mihaistoie@gmail.com>",
+    "license": "MIT",
+    "dependencies": {},
+    "devDependencies": {
+        "gulp": "latest",
+        "gulp-sourcemaps": "latest",
+        "gulp-typescript": "latest",
+        "merge2": "latest",
+        "mocha": "latest",
+        "typescript": "next"
+    },
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "main": "bin/index.js",
+    "scripts": {
+        "prepublish": "gulp compile",
+        "test": "node_modules/.bin/mocha  test/odata/*.test.js"
+    }
+}
