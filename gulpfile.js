@@ -5,7 +5,7 @@ var merge = require('merge2');
 var ts = require('gulp-typescript');
 
 
-gulp.task('clean:dist', function () {
+gulp.task('clean', function () {
     return del([
     'lib/',
     './index.js'
@@ -13,7 +13,7 @@ gulp.task('clean:dist', function () {
    
 });
 
-gulp.task('ts', function () {
+gulp.task('ts', ['clean'], function () {
     var tsProject = ts.createProject(path.resolve('./tsconfig.json'));
     var tsResult = gulp.src(path.resolve('./src/**/*.ts')).pipe(ts(tsProject));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
@@ -23,4 +23,4 @@ gulp.task('ts', function () {
    
 });
 
-gulp.task('default', ['clean:dist', 'ts']);
+gulp.task('default', ['ts']);
