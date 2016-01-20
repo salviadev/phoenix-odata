@@ -18,12 +18,12 @@
     "type": "git",
     "url": "https://github.com/salviadev/phoenix-odata.git"
   },
-  "main": "bin/index.js",
+  "main": "./index.js",
   "typescript": {
     "definition": "lib/definitions/index.d.ts"
   },
   "scripts": {
-    "prepublish": "gulp compile",
+    "prepublish": "gulp",
     "test": "node_modules/.bin/mocha  test/odata/*.test.js"
   }
 }
