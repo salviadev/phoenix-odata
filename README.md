@@ -1,13 +1,17 @@
 #Odata tools
 
-This package contains
+This package contains:
 
 * Odata $filtrer parser
-* Mongodb adapter Odata $filter  
+* Mongodb adapter for Odata $filter  
+
+
 
 ###Compile
 
-`npm install -g tsd gulp`
+`npm install -g tsd gulp typescript`
+
+`npm install`
 
 `tsd install`
 
