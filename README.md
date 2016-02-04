@@ -7,14 +7,16 @@ This package contains:
 
 
 
-###Compile
+### Install
 
-`npm install -g tsd gulp typescript`
+`npm install -g gulp typescript`
 
 `npm install`
 
-`tsd install`
+### Build
 
 `gulp`
+
+### Test
 
 `npm test`
