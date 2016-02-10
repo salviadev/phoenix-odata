@@ -22,8 +22,9 @@ describe('Odata $filter to mongo Filter', function () {
         it('OR', function () {
             var mf = $filter2mongoFilter("Country_Region_Code eq 'ES' or Country_Region_Code eq 'US' or Country_Region_Code eq 'FR'");
             assert.deepEqual(mf, { $or: [{ Country_Region_Code: "ES" }, { Country_Region_Code: "US" }, { Country_Region_Code: "FR" }] })
-            mf = $filter2mongoFilter("Country_Region_Code eq 'ES' or Payment_Terms_Code eq '14 DAYS' or VAT_Bus_Posting_Group ne 'EXPORT'");
+            mf = $filter2mongoFilter("(((Country_Region_Code eq 'ES') or ((Payment_Terms_Code eq '14 DAYS')) or VAT_Bus_Posting_Group ne 'EXPORT'))");
             assert.deepEqual(mf, { $or: [{ Country_Region_Code: 'ES' }, { Payment_Terms_Code: '14 DAYS' }, { VAT_Bus_Posting_Group: { $ne: "EXPORT" } }] });
+            
         });
 
         it('Less than', function () {

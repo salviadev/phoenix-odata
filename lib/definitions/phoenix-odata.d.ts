@@ -12,7 +12,7 @@ declare module 'phoenix-odata/lib/odata/index' {
 }
 
 declare module 'phoenix-odata/lib/mongodb/odata-filter' {
-    export function $filter2mongoFilter(filter: string): any;
+    export function $filter2mongoFilter(filter: string, schema?: any): any;
 }
 
 declare module 'phoenix-odata/lib/odata/parser/operators' {

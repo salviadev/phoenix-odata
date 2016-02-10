@@ -266,7 +266,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
     return false;
 }
 
-export function $filter2mongoFilter(filter: string): any {
+export function $filter2mongoFilter(filter: string, schema?: any): any {
     let res: any = {};
     var p = OdataParser.parse(filter);
     if (p) {
