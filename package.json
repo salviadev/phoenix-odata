@@ -11,6 +11,7 @@
         "gulp-sourcemaps": "latest",
         "gulp-typescript": "latest",
         "run-sequence": "latest",
+        "gulp-shell": "latest",
         "merge2": "latest",
         "mocha": "latest",
         "gulp": "latest",

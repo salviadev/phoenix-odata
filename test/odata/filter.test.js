@@ -1,5 +1,5 @@
 var assert = require("assert");
-var parser = require("../../index").OdataParser;
+var parser = require("../../lib/odata/index").OdataParser;
 
 describe('Odata $filter parser', function() {
 	describe('#operators()', function() {
