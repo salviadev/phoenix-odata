@@ -25,7 +25,8 @@ gulp.task('upgrade', function (done) {
 gulp.task('clean', function () {
     return del([
         'lib/',
-        './index.js'
+        './index.js',
+        './src/**/*.js'
     ]);
 
 });

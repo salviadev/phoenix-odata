@@ -1,6 +1,3 @@
-/// <reference path="../../../node_modules/phoenix-utils/lib/definitions/phoenix-utils.d.ts" />
-/// <reference path="../../../node_modules/phoenix-json-schema-tools/lib/definitions/phoenix-json-schema-tools.d.ts" />
-
 "use strict";
 import {OdataParser, TokenType, Expression} from '../odata/index';
 import * as pschema from 'phoenix-json-schema-tools';

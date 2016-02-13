@@ -18,6 +18,7 @@
         "merge2": "latest",
         "mocha": "latest",
         "gulp": "latest",
+        "typings": "latest",
         "typescript": "next"
     },
     "repository": {
