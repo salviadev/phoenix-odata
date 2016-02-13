@@ -290,6 +290,8 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
 }
 
 export function $filter2mongoFilter(filter: string, schema?: any): any {
+    
+    console.log("$filter2mongoFilter: schema = " + schema);
     let res: any = {};
     var p = OdataParser.parse(filter);
     if (p) {
