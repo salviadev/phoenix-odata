@@ -25,7 +25,7 @@ function _escaperegex(value: string): string {
 
 function _value(propName: string, schema: any, value: any, isJs: boolean) {
     let type = schema ? pschema.schema.typeOfProperty(propName, schema) : null;
-    if (type === "data") {
+    if (type === "date") {
         if (value) {
             if (isJs) {
                 return 'ISODate("' + value + '")';
