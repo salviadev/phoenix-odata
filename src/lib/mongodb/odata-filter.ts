@@ -1,5 +1,10 @@
+/// <reference path="../../../node_modules/phoenix-utils/lib/definitions/phoenix-utils.d.ts" />
+/// <reference path="../../../node_modules/phoenix-json-schema-tools/lib/definitions/phoenix-json-schema-tools.d.ts" />
+
 "use strict";
 import {OdataParser, TokenType, Expression} from '../odata/index';
+import * as pschema from 'phoenix-json-schema-tools';
+import * as putils from 'phoenix-utils';
 
 function _NOI() {
     throw new Error('Filter Not Implemented.');
@@ -18,20 +23,37 @@ function _escaperegex(value: string): string {
 }
 
 
+function _value(propName: string, schema: any, value: any, isJs: boolean) {
+    let type = schema ? pschema.schema.typeOfProperty(propName, schema) : null;
+    if (type === "data") {
+        if (value) {
+            if (isJs) {
+                return 'ISODate("' + value + '")';
+            } else {
+                return putils.date.parseISODate(value); 
+            }
+        } 
+    }
+    return value;
+}
 
-function _extractIdVal(c1: Expression, c2: Expression): { left: Expression, right: Expression, c1: Expression, c2: Expression } {
+function _extractIdVal(c1: Expression, c2: Expression, schema: any): { left: Expression, right: Expression, c1: Expression, c2: Expression } {
     let res = { left: null, right: null, c1: c1, c2: c2 };
     if (c1.type === TokenType.identifier) {
         res.left = c1;
         res.left.value = _embeddedId(res.left.value);
-        if (c2.type === TokenType.literal)
+        if (c2.type === TokenType.literal) {
             res.right = c2;
+            res.right.value = _value(res.left.value, schema, res.right.value, false);
+        }
 
     } else if (c2.type === TokenType.identifier) {
         res.left = c2;
         res.left.value = _embeddedId(res.left.value);
-        if (c1.type === TokenType.literal)
+        if (c1.type === TokenType.literal) {
             res.right = c1;
+            res.right.value = _value(res.left.value, schema, res.right.value, false);
+        }
     } else if (c1.type === TokenType.literal && c2.type === TokenType.literal)
         throw new Error('Invalid filter (literal == literal).');
     return res;
@@ -39,7 +61,7 @@ function _extractIdVal(c1: Expression, c2: Expression): { left: Expression, righ
 
 
 
-function _exec(exp: Expression, match: any, orList, andList: any[], js: string[], checkJs: boolean): boolean {
+function _exec(exp: Expression, match: any, orList, andList: any[], js: string[], checkJs: boolean, schema: any): boolean {
     if (!match && !orList && !andList) return match;
     let d: { left: Expression, right: Expression, c1: Expression, c2: Expression };
     if (exp.type === TokenType.identifier) {
@@ -57,7 +79,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
         if (checkJs) {
             let len = exp.children.length;
             while (len--) {
-                let cjs = _exec(exp.children[len], match, null, null, js, true);
+                let cjs = _exec(exp.children[len], match, null, null, js, true, schema);
                 if (cjs) return true;
             }
             return false;
@@ -74,11 +96,11 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                     if (js.length && index > 0)
                         js.push(' && ');
                     if (child.type === TokenType.operator && child.value.code === "and")
-                        _exec(child, null, null, alist, js, checkJs);
+                        _exec(child, null, null, alist, js, checkJs, schema);
                     else {
                         let am = {};
                         alist.push(am);
-                        _exec(child, am, null, null, js, checkJs);
+                        _exec(child, am, null, null, js, checkJs, schema);
                     }
                 });
                 break;
@@ -92,18 +114,18 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                     if (js.length && index > 0)
                         js.push(' || ');
                     if (child.type === TokenType.operator && child.value.code === "or")
-                        _exec(child, null, list, null, js, checkJs);
+                        _exec(child, null, list, null, js, checkJs, schema);
                     else {
                         let oa = {};
                         list.push(oa);
-                        _exec(child, oa, null, null, js, checkJs);
+                        _exec(child, oa, null, null, js, checkJs, schema);
                     }
 
                 });
                 if (js.length && match && match.$or) delete match.$or;
                 break;
             case "=":
-                d = _extractIdVal(exp.children[0], exp.children[1]);
+                d = _extractIdVal(exp.children[0], exp.children[1], schema);
                 if (d.left && d.right) {
                     match[d.left.value] = d.right.value;
                 } else {
@@ -111,7 +133,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 }
                 break;
             case "<>":
-                d = _extractIdVal(exp.children[0], exp.children[1]);
+                d = _extractIdVal(exp.children[0], exp.children[1], schema);
                 if (d.left && d.right) {
                     match[d.left.value] = { $ne: d.right.value };
                 } else {
@@ -119,7 +141,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 }
                 break;
             case ">":
-                d = _extractIdVal(exp.children[0], exp.children[1]);
+                d = _extractIdVal(exp.children[0], exp.children[1], schema);
                 if (d.left && d.right) {
                     match[d.left.value] = (d.c1 === d.left) ? { $gt: d.right.value } : { $lte: d.left.value };
                 } else {
@@ -127,7 +149,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 }
                 break;
             case "<":
-                d = _extractIdVal(exp.children[0], exp.children[1]);
+                d = _extractIdVal(exp.children[0], exp.children[1], schema);
                 if (d.left && d.right) {
                     match[d.left.value] = (d.c1 === d.left) ? { $lt: d.right.value } : { $gte: d.right.value };
                 } else {
@@ -136,7 +158,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 break;
 
             case ">=":
-                d = _extractIdVal(exp.children[0], exp.children[1]);
+                d = _extractIdVal(exp.children[0], exp.children[1], schema);
                 if (d.left && d.right) {
                     match[d.left.value] = (d.c1 === d.left) ? { $gte: d.right.value } : { $lt: d.right.value };
                 } else {
@@ -144,7 +166,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 }
                 break;
             case "<=":
-                d = _extractIdVal(exp.children[0], exp.children[1]);
+                d = _extractIdVal(exp.children[0], exp.children[1], schema);
                 if (d.left && d.right) {
                     match[d.left.value] = (d.c1 === d.left) ? { $lte: d.right.value } : { $gt: d.right.value };
                 } else {
@@ -162,7 +184,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
             if (['trim', 'tolower', 'toupper'].indexOf(exp.value.name) >= 0) return true;
             let len = exp.children.length;
             while (len--) {
-                let cjs = _exec(exp.children[len], match, null, null, js, true);
+                let cjs = _exec(exp.children[len], match, null, null, js, true, schema);
                 if (cjs) return true;
             }
 
@@ -180,16 +202,16 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 let isContains = (exp.value.name === "contains");
                 if (js.length) {
                     js.push('(');
-                    _exec(exp.children[0], match, null, null, js, false);
+                    _exec(exp.children[0], match, null, null, js, false, schema);
                     js.push('.indexOf(');
-                    _exec(exp.children[1], match, null, null, js, false);
+                    _exec(exp.children[1], match, null, null, js, false, schema);
                     if (isContains)
                         js.push(') >= 0)');
                     else
                         js.push(') < 0)');
                 } else {
-                    _exec(exp.children[0], match, null, null, js, false);
-                    _exec(exp.children[1], match, null, null, js, false);
+                    _exec(exp.children[0], match, null, null, js, false, schema);
+                    _exec(exp.children[1], match, null, null, js, false, schema);
                     if (isContains)
                         match[exp.children[0].value] = { $regex: _escaperegex(exp.children[1].value), $options: "i" };
                     else
@@ -207,16 +229,16 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 let isStartswith = (exp.value.name === "startswith");
                 if (js.length) {
                     js.push('(');
-                    _exec(exp.children[0], match, null, null, js, false);
+                    _exec(exp.children[0], match, null, null, js, false, schema);
                     js.push('.indexOf(');
-                    _exec(exp.children[1], match, null, null, js, false);
+                    _exec(exp.children[1], match, null, null, js, false, schema);
                     if (isStartswith)
                         js.push(') === 0)');
                     else
                         js.push(') < 0)');
                 } else {
-                    _exec(exp.children[0], match, null, null, js, false);
-                    _exec(exp.children[1], match, null, null, js, false);
+                    _exec(exp.children[0], match, null, null, js, false, schema);
+                    _exec(exp.children[1], match, null, null, js, false, schema);
                     if (isStartswith)
                         match[exp.children[0].value] = { $regex: '^' + _escaperegex(exp.children[1].value), $options: "i" };
                     else
@@ -225,7 +247,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                 break
             case "endswith":
             case "notendswith":
-                
+
                 if (checkJs) {
                     if (exp.children[0].type === TokenType.identifier && exp.children[0].type === TokenType.literal) {
                         return true;
@@ -238,23 +260,23 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
                         js.push('');
                     else
                         js.push('!');
-                    _exec(exp.children[0], match, null, null, js, false);
+                    _exec(exp.children[0], match, null, null, js, false, schema);
                     js.push('.endswith(');
-                    _exec(exp.children[1], match, null, null, js, false);
+                    _exec(exp.children[1], match, null, null, js, false, schema);
                     js.push(')');
                 } else {
-                    _exec(exp.children[0], match, null, null, js, false);
-                    _exec(exp.children[1], match, null, null, js, false);
+                    _exec(exp.children[0], match, null, null, js, false, schema);
+                    _exec(exp.children[1], match, null, null, js, false, schema);
                     match[exp.children[0].value] = { $regex: '^' + _escaperegex(exp.children[1].value) + '$', $options: "i" };
                 }
                 break
 
             case "tolower":
-                _exec(exp.children[0], match, null, null, js, false);
+                _exec(exp.children[0], match, null, null, js, false, schema);
                 js.push('.toLowerCase()');
                 break
             case "toupper":
-                _exec(exp.children[0], match, null, null, js, false);
+                _exec(exp.children[0], match, null, null, js, false, schema);
                 js.push('.toUpperCase()');
                 break
             default:
@@ -271,12 +293,12 @@ export function $filter2mongoFilter(filter: string, schema?: any): any {
     var p = OdataParser.parse(filter);
     if (p) {
         let js = [];
-        let useJs = _exec(p, res, null, null, js, true);
+        let useJs = _exec(p, res, null, null, js, true, schema);
         res = {};
         if (useJs) {
             js.push('');
         }
-        _exec(p, res, null, null, js, false);
+        _exec(p, res, null, null, js, false, schema);
         if (js.length) {
             res.$where = js.join('');
         }

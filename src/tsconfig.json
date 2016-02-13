@@ -2,7 +2,11 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es6",
-        "declaration": true,
-        "noExternalResolve": true
-    }
+        "declaration": true
+    },
+    "exclude": [
+        "typings/browser",
+        "typings/browser.d.ts"
+    ]
+    
 }

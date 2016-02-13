@@ -4,7 +4,10 @@
     "version": "0.0.1",
     "author": "Mihai STOIE <mihaistoie@gmail.com>",
     "license": "MIT",
-    "dependencies": {},
+    "dependencies": {
+        "phoenix-utils": "git+https://git@github.com/salviadev/phoenix-utils.git",
+        "phoenix-json-schema-tools": "git+https://git@github.com/salviadev/phoenix-json-schema-tools.git"
+    },
     "devDependencies": {
         "del": "latest",
         "dts-bundle": "latest",
