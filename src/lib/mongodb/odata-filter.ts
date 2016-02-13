@@ -25,7 +25,7 @@ function _escaperegex(value: string): string {
 
 function _value(propName: string, schema: any, value: any, isJs: boolean) {
     let type = schema ? pschema.schema.typeOfProperty(propName, schema) : null;
-    console.log("type of " + propName + " is " + type);
+
     if (type === "date") {
         if (value) {
             if (isJs) {
@@ -47,8 +47,7 @@ function _extractIdVal(c1: Expression, c2: Expression, schema: any): { left: Exp
             res.right = c2;
             res.right.value = _value(res.left.value, schema, res.right.value, false);
         }
-        console.log(res);
-
+       
     } else if (c2.type === TokenType.identifier) {
         res.left = c2;
         res.left.value = _embeddedId(res.left.value);
