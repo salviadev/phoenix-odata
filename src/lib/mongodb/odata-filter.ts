@@ -46,6 +46,7 @@ function _extractIdVal(c1: Expression, c2: Expression, schema: any): { left: Exp
             res.right = c2;
             res.right.value = _value(res.left.value, schema, res.right.value, false);
         }
+        console.log(res);
 
     } else if (c2.type === TokenType.identifier) {
         res.left = c2;
