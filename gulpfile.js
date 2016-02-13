@@ -42,7 +42,7 @@ gulp.task('definition-bundle', function () {
 
 
 gulp.task('ts', ['clean'], function () {
-    var tsProject = ts.createProject(path.resolve('./src/tsconfig.json'));
+    var tsProject = ts.createProject(path.resolve('./tsconfig.json'));
     var tsResult = gulp.src(path.resolve('./src/**/*.ts')).pipe(ts(tsProject));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.dts.pipe(gulp.dest('lib/definitions')),

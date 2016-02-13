@@ -1,4 +1,5 @@
 "use strict";
+
 import {OdataParser, TokenType, Expression} from '../odata/index';
 import * as pschema from 'phoenix-json-schema-tools';
 import * as putils from 'phoenix-utils';
