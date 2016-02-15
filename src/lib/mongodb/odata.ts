@@ -1,5 +1,7 @@
 "use strict";
 
+import * as putils from 'phoenix-utils';
+
 export function queryResult(payload: any[], count?: number): any {
     let res = {
         value: payload || []
@@ -9,6 +11,61 @@ export function queryResult(payload: any[], count?: number): any {
     return res;
 }
 
+export function parseSelect(select?: string): string[] {
+    if (!select) return [];
+    return select.split(',').map(value => {
+        return value.trim().replace(/\//g, '.');
+    });
+}
+
+function _extractValue(src: any, dst: any, props: string[]): void {
+    let cp = props.shift(), last = props.length === 0;
+    if (Array.isArray(src)) {
+        src.forEach(function(srcItem, index) {
+            if (Array.isArray(srcItem) || typeof srcItem !== 'object')
+                throw new putils.http.HttpError("Invalid $select", 400);
+            let dstItem = {};
+            dst.push(dstItem);
+
+            let v = srcItem[cp];
+            if (last || !v || typeof v !== 'object') {
+                dstItem[cp] = v;
+            } else {
+                if (Array.isArray(v))
+                    dstItem[cp] = [];
+                else
+                    dstItem[cp] = {};
+                _extractValue(v, dstItem[cp], props);
+            }
+
+        });
+
+    } else {
+        let v = src[cp];
+        if (last || !v || typeof v !== 'object') {
+            dst[cp] = v;
+        } else {
+            if (Array.isArray(v))
+                dst[cp] = [];
+            else
+                dst[cp] = {};
+            _extractValue(v, dst[cp], props);
+        }
+    }
+}
+
+export function applySelect(payload: any, select: string[]): any {
+    if (!select.length) return payload;
+    let res = {};
+    select.forEach(value => {
+        _extractValue(payload, res, value.split('.'))
+    });
+
+    return res;
+}
+
+
+
 export function queryOptions(query: any): any {
     let options: any = {};
     if (query.$skip)
@@ -16,14 +73,14 @@ export function queryOptions(query: any): any {
     if (query.$top)
         options.limit = parseInt(query.$top, 10);
 
-    if (options.limit) options.limit++;
+    if (options.limit)
+        options.limit++;
 
     if (query.$orderby) {
         options.sort = query.$orderby.split(',').map(value => {
             value = value.trim();
             let a = value.split(' ');
-            return [a[0], (a.length > 1 && a[1] === 'desc') ? -1 : 1];
-
+            return [a[0].replace(/\//g, '.'), (a.length > 1 && a[1] === 'desc') ? -1 : 1];
         });
     }
     options.count = query.$count === 'true';
