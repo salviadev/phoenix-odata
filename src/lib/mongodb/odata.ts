@@ -75,7 +75,9 @@ export function queryOptions(query: any): any {
 
     if (options.limit)
         options.limit++;
-
+    if (query.$search) {
+        options.text = { $search: query.$search }
+    }
     if (query.$orderby) {
         options.sort = query.$orderby.split(',').map(value => {
             value = value.trim();
