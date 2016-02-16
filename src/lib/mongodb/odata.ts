@@ -54,14 +54,24 @@ function _extractValue(src: any, dst: any, props: string[]): void {
     }
 }
 
-export function applySelect(payload: any, select: string[]): any {
-    if (!select.length) return payload;
-    let res = {};
-    select.forEach(value => {
-        _extractValue(payload, res, value.split('.'))
-    });
+export function extractResult(payload: any, options): any {
+    if (options.groupby) {
+        options.groupByItems =  options.groupByItems || Object.keys(options.groupby);
+        options.groupByItems.forEach(function(pn){
+            payload[pn] = payload._id[pn];
+        });
+    }
+    delete payload._id;
+    if (options.select && options.select.length) {
+        let res = {};
+        options.select.forEach(value => {
+            _extractValue(payload, res, value.split('.'))
+        });
 
-    return res;
+        return res;
+    }
+    
+    return payload;
 }
 
 
@@ -87,7 +97,7 @@ export function queryOptions(query: any, schema: any): any {
     }
     options.count = query.$count === 'true';
     if (query.aggregation) {
-        options.group =  $aggregation2mongoAggregation(query.aggregation, query.groupby, schema);
+        options.group = $aggregation2mongoAggregation(query.aggregation, query.groupby, schema);
     }
     return options;
 }

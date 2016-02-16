@@ -2,7 +2,7 @@
 
 declare module 'phoenix-odata' {
     export { $filter2mongoFilter, $aggregation2mongoAggregation } from 'phoenix-odata/lib/mongodb/odata-filter';
-    export { queryOptions, queryResult, parseSelect, applySelect } from 'phoenix-odata/lib/mongodb/odata';
+    export { queryOptions, queryResult, parseSelect, extractResult } from 'phoenix-odata/lib/mongodb/odata';
 }
 
 declare module 'phoenix-odata/lib/mongodb/odata-filter' {
@@ -13,7 +13,7 @@ declare module 'phoenix-odata/lib/mongodb/odata-filter' {
 declare module 'phoenix-odata/lib/mongodb/odata' {
     export function queryResult(payload: any[], count?: number): any;
     export function parseSelect(select?: string): string[];
-    export function applySelect(payload: any, select: string[]): any;
+    export function extractResult(payload: any, options: any): any;
     export function queryOptions(query: any, schema: any): any;
 }
 

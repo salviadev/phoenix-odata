@@ -6,4 +6,4 @@ var odata_1 = require('./lib/mongodb/odata');
 exports.queryOptions = odata_1.queryOptions;
 exports.queryResult = odata_1.queryResult;
 exports.parseSelect = odata_1.parseSelect;
-exports.applySelect = odata_1.applySelect;
+exports.extractResult = odata_1.extractResult;
