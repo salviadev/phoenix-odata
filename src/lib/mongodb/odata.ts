@@ -1,7 +1,7 @@
 "use strict";
 
 import * as putils from 'phoenix-utils';
-
+import {$aggregation2mongoAggregation} from './odata-filter';
 export function queryResult(payload: any[], count?: number): any {
     let res = {
         value: payload || []
@@ -66,7 +66,7 @@ export function applySelect(payload: any, select: string[]): any {
 
 
 
-export function queryOptions(query: any): any {
+export function queryOptions(query: any, schema: any): any {
     let options: any = {};
     if (query.$skip)
         options.skip = parseInt(query.$skip, 10);
@@ -86,6 +86,9 @@ export function queryOptions(query: any): any {
         });
     }
     options.count = query.$count === 'true';
+    if (query.aggregation) {
+        options.group =  $aggregation2mongoAggregation(query.aggregation, query.groupby, schema);
+    }
     return options;
 }
 

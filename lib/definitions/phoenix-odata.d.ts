@@ -14,6 +14,6 @@ declare module 'phoenix-odata/lib/mongodb/odata' {
     export function queryResult(payload: any[], count?: number): any;
     export function parseSelect(select?: string): string[];
     export function applySelect(payload: any, select: string[]): any;
-    export function queryOptions(query: any): any;
+    export function queryOptions(query: any, schema: any): any;
 }
 
