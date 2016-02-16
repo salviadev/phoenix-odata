@@ -55,8 +55,8 @@ function _extractValue(src: any, dst: any, props: string[]): void {
 }
 
 export function extractResult(payload: any, options): any {
-    if (options.groupby) {
-        options.groupByItems =  options.groupByItems || Object.keys(options.groupby);
+    if (options.group && options.group._id) {
+        options.groupByItems =  options.groupByItems || Object.keys(options.group._id);
         options.groupByItems.forEach(function(pn){
             payload[pn] = payload._id[pn];
         });
