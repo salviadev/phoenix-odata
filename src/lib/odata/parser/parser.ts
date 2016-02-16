@@ -1,8 +1,8 @@
 "use strict";
 
 import { TokenType, tokenize, Token}  from "./token";
-import { Operator} from "./operators";
-import { odataFunctions} from "./functions";
+import { Operator, operators, aggregationOperators} from "./operators";
+import { odataFunctions, odataAggregationFunctions} from "./functions";
 
 
 export class Expression {
@@ -65,13 +65,13 @@ export class Expression {
 const
     _maxPrecedence = 8;
 
-function _parseArguments(tokens: Token[], tk: Token, tokenIndex: number[], args: any[]): void {
+function _parseArguments(tokens: Token[], tk: Token, tokenIndex: number[], args: any[], functions): void {
     if (tokenIndex[0] < tokens.length && tokens[tokenIndex[0]].matches(")")) {
         tokenIndex[0]++;
         return;
     }
     while (tokenIndex[0] < tokens.length) {
-        let arg = _parseExpression(tokens, tokenIndex, _maxPrecedence);
+        let arg = _parseExpression(tokens, tokenIndex, _maxPrecedence, functions);
         args.push(arg);
         if (tokenIndex[0] < tokens.length && tokens[tokenIndex[0]].matches(")")) {
             tokenIndex[0]++;
@@ -87,31 +87,32 @@ function _parseArguments(tokens: Token[], tk: Token, tokenIndex: number[], args:
 
 
 
-function _parseFunctionCall(tokens: Token[], tk: Token, tokenIndex: number[]): Expression {
+function _parseFunctionCall(tokens: Token[], tk: Token, tokenIndex: number[], functions): Expression {
     tokenIndex[0]++;
-    var func = odataFunctions.byName(tk.value);
+    var func = functions.byName(tk.value);
+
     if (!func)
         throw new Error("Expression parser:Invalid function name  " + tk.value);
     var exp = new Expression({
         expressionType: TokenType.func,
         value: func
     });
-    _parseArguments(tokens, tk, tokenIndex, exp.children);
+    _parseArguments(tokens, tk, tokenIndex, exp.children, functions);
     return exp;
 }
 
-function _parsePrefixOperator(tokens: Token[], op: Operator, tokenIndex: number[]): Expression {
+function _parsePrefixOperator(tokens: Token[], op: Operator, tokenIndex: number[], functions): Expression {
     var arg1;
     switch (op.code) {
         case "-":
         case "not":
-            arg1 = _parseExpression(tokens, tokenIndex, 1);
+            arg1 = _parseExpression(tokens, tokenIndex, 1, functions);
             return new Expression({
                 operator: op,
                 expression1: arg1
             });
         case "(":
-            arg1 = _parseExpression(tokens, tokenIndex, op.precedence);
+            arg1 = _parseExpression(tokens, tokenIndex, op.precedence, functions);
             if (tokenIndex[0] === tokens.length || !tokens[tokenIndex[0]].matches(")")) {
                 throw new Error("Expression parser:invalid expression: expected ')' after " + tokens[tokenIndex[0] - 1].getRemainingText());
             }
@@ -124,7 +125,7 @@ function _parsePrefixOperator(tokens: Token[], op: Operator, tokenIndex: number[
 
 
 
-function _parseTerm(tokens: Token[], tokenIndex: number[]): Expression {
+function _parseTerm(tokens: Token[], tokenIndex: number[], functions): Expression {
     if (tokenIndex[0] == tokens.length) {
         throw new Error("Expression parser: premature end of expression");
     }
@@ -133,7 +134,7 @@ function _parseTerm(tokens: Token[], tokenIndex: number[]): Expression {
         case TokenType.identifier:
             tokenIndex[0]++;
             if (tokenIndex[0] < tokens.length && tokens[tokenIndex[0]].matches("(")) {
-                return _parseFunctionCall(tokens, tk, tokenIndex);
+                return _parseFunctionCall(tokens, tk, tokenIndex, functions);
             } else {
                 return new Expression({
                     expressionType: TokenType.identifier,
@@ -154,7 +155,7 @@ function _parseTerm(tokens: Token[], tokenIndex: number[]): Expression {
                 throw new Error("Expression parser: invalid expression: expected beginning of term at " + tk.getRemainingText());
             }
             tokenIndex[0]++;
-            return _parsePrefixOperator(tokens, op, tokenIndex);
+            return _parsePrefixOperator(tokens, op, tokenIndex, functions);
         default:
             throw new Error("Expression parser: internal error: bad token type " + tk.type);
     }
@@ -162,8 +163,8 @@ function _parseTerm(tokens: Token[], tokenIndex: number[]): Expression {
 
 
 
-function _parseExpression(tokens, tokenIndex, precedence): Expression {
-    let exp = _parseTerm(tokens, tokenIndex);
+function _parseExpression(tokens, tokenIndex, precedence, functions): Expression {
+    let exp = _parseTerm(tokens, tokenIndex, functions);
     while (tokenIndex[0] < tokens.length) {
         let tk = <Token>tokens[tokenIndex[0]];
         var op = <Operator>(tk.value && tk.value.isOperator ? tk.value : null);
@@ -171,24 +172,13 @@ function _parseExpression(tokens, tokenIndex, precedence): Expression {
             break;
         }
         tokenIndex[0]++;
-        if (op.code == "in") {
-            if (tokenIndex[0] === tokens.length || !tokens[tokenIndex[0]].matches("(")) {
-                throw new Error("Expression parser: invalid expression: '(' expected after " + tk.getRemainingText());
-            }
-            tokenIndex[0]++;
-            exp = new Expression({
-                operator: op,
-                expression1: exp
-            });
-            _parseArguments(tokens, tk, tokenIndex, exp.children);
-        } else {
-            let arg = _parseExpression(tokens, tokenIndex, op.precedence - 1);
-            exp = new Expression({
-                operator: op,
-                expression1: exp,
-                expression2: arg
-            });
-        }
+
+        let arg = _parseExpression(tokens, tokenIndex, op.precedence - 1, functions);
+        exp = new Expression({
+            operator: op,
+            expression1: exp,
+            expression2: arg
+        });
         if (!op.isAssociative && op.precedence == precedence) {
             return exp;
         }
@@ -199,8 +189,11 @@ function _parseExpression(tokens, tokenIndex, precedence): Expression {
 
 
 export class Parser {
-    constructor() {
-
+    private _functions: any;
+    private _operators: any;
+    constructor(functions: any, loperators: any) {
+        this._functions = functions;
+        this._operators = loperators;
     }
     parse(str: string) {
 
@@ -210,10 +203,10 @@ export class Parser {
             return null;
         }
 
-        let tokens = tokenize(str);
+        let tokens = tokenize(str, this._operators);
         let tokenIndex = [];
         tokenIndex[0] = 0;
-        let exp = _parseExpression(tokens, tokenIndex, _maxPrecedence);
+        let exp = _parseExpression(tokens, tokenIndex, _maxPrecedence, this._functions);
         if (tokenIndex[0] != tokens.length) {
             throw new Error("Expression parser: invalid expression: unexpected token at " + tokens[tokenIndex[0]].getRemainingText());
         }
@@ -230,4 +223,5 @@ export class Parser {
 }
 
 
-export var OdataParser = new Parser();
+export var OdataParser = new Parser(odataFunctions, operators);
+export var OdataAggergationParser = new Parser(odataAggregationFunctions, aggregationOperators);

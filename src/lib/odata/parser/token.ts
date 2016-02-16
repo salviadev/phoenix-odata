@@ -1,5 +1,4 @@
 "use strict";
-import { operators } from "./operators";
 
 export const TokenType = {
     identifier: 'identifier',
@@ -37,8 +36,8 @@ export class Token {
 }
 
 const _digitRegex = new RegExp('[0-9]');
-const _letterRegex = new RegExp('[a-zA-Z_\/]');
-const _wordRegex = new RegExp('[a-zA-Z0-9_\.\/]');
+const _letterRegex = new RegExp('[a-zA-Z_\/\$]');
+const _wordRegex = new RegExp('[a-zA-Z0-9_\.\/\$]');
 
 function _skipSpaces(chars: string, i: number): number {
     while (i < chars.length && chars[i] === " ") {
@@ -103,8 +102,8 @@ function _parseDateTime(line: string, chars: string, i: number, tokens: Token[])
 }
 
 
-function _parseWord(line: string, chars: string, i: number, tokens: Token[]): number {
-
+function _parseWord(line: string, chars: string, i: number, tokens: Token[], operators): number {
+    
     let end = i + 1;
     while (end < chars.length && _isWordChar(chars[end])) {
         end++;
@@ -114,6 +113,7 @@ function _parseWord(line: string, chars: string, i: number, tokens: Token[]): nu
         return _parseDateTime(line, chars, i, tokens);
     }
     let op = operators.byName(word.toLowerCase());
+    
     if (op) {
         tokens.push(new Token(TokenType.operator, op, line, i, null));
     } else {
@@ -144,14 +144,14 @@ function _parseQuotedString(line: string, chars: string, i: number, tokens: Toke
     throw new Error('Expression parser: quoted string not terminated: ' + line.substring(i));
 }
 
-function _parseOperator(line: string, chars: string, i: number, tokens: Token[]): number {
+function _parseOperator(line: string, chars: string, i: number, tokens: Token[], operators): number {
     let op = operators.byName(chars);
     tokens.push(new Token(TokenType.operator, op, line, i, null));
     return i + 1;
 }
 
 
-export function tokenize(line: string): Token[] {
+export function tokenize(line: string, operators): Token[] {
     let tokens = [];
     let i = 0;
     while (i < line.length) {
@@ -168,11 +168,11 @@ export function tokenize(line: string): Token[] {
             case '(':
             case ')':
             case ',':
-                i = _parseOperator(line, ch, i, tokens);
+                i = _parseOperator(line, ch, i, tokens, operators);
                 break;
             default:
                 if (_isLetter(ch)) {
-                    i = _parseWord(line, line, i, tokens);
+                    i = _parseWord(line, line, i, tokens, operators);
                 } else if (_isDigit(ch)) {
                     i = _parseNumber(line, line, i, tokens);
                 } else {
@@ -181,6 +181,7 @@ export function tokenize(line: string): Token[] {
                 break;
         }
     }
+
     return tokens;
 }
 

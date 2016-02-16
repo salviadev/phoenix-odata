@@ -47,6 +47,7 @@ describe('Odata $select', function () {
                 { name: "x" }, { name: "y" }
             ]
         };
+        
 
         assert.deepEqual(excepted, res);
 

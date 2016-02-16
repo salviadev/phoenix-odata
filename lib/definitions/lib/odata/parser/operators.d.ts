@@ -16,4 +16,10 @@ export declare class Operators {
     byName(opName: string): Operator;
     private _registerOperators();
 }
+export declare class AggregationOperators {
+    constructor();
+    byName(opName: string): Operator;
+    private _registerOperators();
+}
 export declare var operators: Operators;
+export declare var aggregationOperators: AggregationOperators;

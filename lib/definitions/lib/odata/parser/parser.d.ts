@@ -9,8 +9,11 @@ export declare class Expression {
     toString(): string;
 }
 export declare class Parser {
-    constructor();
+    private _functions;
+    private _operators;
+    constructor(functions: any, loperators: any);
     parse(str: string): Expression;
     parseNe(str: string): Expression;
 }
 export declare var OdataParser: Parser;
+export declare var OdataAggergationParser: Parser;

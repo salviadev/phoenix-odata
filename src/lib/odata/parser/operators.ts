@@ -57,8 +57,7 @@ export class Operators {
         _createOperator(operators, ">=", "ge", 5, false, true, false, true);
 
 
-        _createOperator(operators, null, "in", 5, false, true, false, true);
-        _createOperator(operators, null, "and", 6, false, true, true, true);
+       _createOperator(operators, null, "and", 6, false, true, true, true);
         _createOperator(operators, null, "or", 7, false, true, true, true);
         _createOperator(operators, null, "(", 8, true, false, false, false);
         _createOperator(operators, null, ")", 8, false, false, false, false);
@@ -67,6 +66,25 @@ export class Operators {
 
 }
 
+export class AggregationOperators {
+    constructor() {
+        this._registerOperators();
+    }
+    public byName(opName: string): Operator {
+        return <Operator>this[opName];
+    }
+    private _registerOperators(): void {
+        let operators = this;
+        _createOperator(operators, null, ".", 1, false, true, true, false);
+        _createOperator(operators, null, "as", 7, false, true, false, true);
+        _createOperator(operators, null, "(", 8, true, false, false, false);
+        _createOperator(operators, null, ")", 8, false, false, false, false);
+        _createOperator(operators, null, ",", 8, false, true, false, true);
+    }
+
+}
+
 
 export var  operators = new Operators();
+export var  aggregationOperators = new AggregationOperators();
 

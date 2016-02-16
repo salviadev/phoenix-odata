@@ -9,4 +9,10 @@ export declare class FuncList {
     private _registerFunctions();
     byName(name: string): Func;
 }
+export declare class AggregationFuncList {
+    constructor();
+    private _registerFunctions();
+    byName(name: string): Func;
+}
 export declare var odataFunctions: FuncList;
+export declare var odataAggregationFunctions: AggregationFuncList;

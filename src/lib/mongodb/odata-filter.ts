@@ -1,6 +1,6 @@
 "use strict";
 
-import {OdataParser, TokenType, Expression} from '../odata/index';
+import {OdataParser, OdataAggergationParser, TokenType, Expression} from '../odata/index';
 import * as pschema from 'phoenix-json-schema-tools';
 import * as putils from 'phoenix-utils';
 
@@ -29,9 +29,9 @@ function _value(propName: string, schema: any, value: any, isJs: boolean) {
             if (isJs) {
                 return 'ISODate("' + value + '")';
             } else {
-                return putils.date.parseISODate(value); 
+                return putils.date.parseISODate(value);
             }
-        } 
+        }
     }
     return value;
 }
@@ -45,7 +45,7 @@ function _extractIdVal(c1: Expression, c2: Expression, schema: any): { left: Exp
             res.right = c2;
             res.right.value = _value(res.left.value, schema, res.right.value, false);
         }
-       
+
     } else if (c2.type === TokenType.identifier) {
         res.left = c2;
         res.left.value = _embeddedId(res.left.value);
@@ -287,8 +287,101 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
     return false;
 }
 
+function _execAggregation(exp: Expression, res: any) {
+    if (exp.type === TokenType.operator) {
+        if (exp.value.code === ",") {
+            _execAggregation(exp.children[0], res);
+            _execAggregation(exp.children[1], res);
+            return;
+        } else if (exp.value.code === "as") {
+            return _execAggregationAs(exp, res)
+        }
+    }
+    throw "Invalid aggregation expression.";
+}
+
+function _execGroupBy(exp: Expression, res: any) {
+    if (exp.type === TokenType.operator) {
+        if (exp.value.code === ",") {
+            _execGroupBy(exp.children[0], res);
+            _execGroupBy(exp.children[1], res);
+            return;
+        } else if (exp.value.code === "as") {
+            return _execAggregationAs(exp, res)
+        }
+    } else if (exp.type === TokenType.identifier) {
+        res[exp.value] = '$' + exp.value;
+        return;
+    }
+     throw "Invalid aggregation expression.";
+}
+
+
+function _execAggregationAs(exp: Expression, res: any) {
+    if (exp.children[1].type !== TokenType.identifier)
+        throw "Aggregation: identifier excepted.";
+    let value = {};
+    res[_embeddedId(exp.children[1].value)] = value;
+    _execAggregationFunction(exp.children[0], value);
+}
+
+function _hasSubFunc(exp: Expression) {
+    for (let i = 0, len = exp.children.length; i < len; i++) {
+        if (exp.children[i].type === TokenType.func)
+            return true;
+    }
+    return false;
+}
+
+function _execAggregationFunction(exp: Expression, res: any, parentName?: string) {
+    if (exp.type === TokenType.func) {
+        if (Array.isArray(res)) {
+            res = res.push({});
+        }
+        if (exp.value.name === "$count") {
+            res.$sum = 1;
+        } else {
+            if (!exp.children.length)
+                throw 'Invalid aggregation expression (no args)';
+            if (exp.children[0].type === TokenType.func) {
+                res[exp.value.name] =  {};
+                res = res[exp.value.name];
+            } else if (exp.children[0].type === TokenType.operator && exp.children[0].value.code === ',') {
+                res[exp.value.name] =  [];
+                res = res[exp.value.name];
+            }
+            exp.children.forEach(function(child) {
+                _execAggregationFunction(child, res, exp.value.name);
+            });
+        }
+    } else if (exp.type === TokenType.identifier || exp.type === TokenType.literal) {
+        if (!parentName)
+            throw 'Invalid aggregation expression (parent empty)';
+        let cv;
+        if (exp.type === TokenType.literal) {
+            cv = exp.value;
+        } else {
+            cv = '$' + exp.value;
+        }
+        if (Array.isArray(res))    
+            res.push(cv);
+        else 
+            res[parentName] = cv;
+    } else if (exp.type === TokenType.operator && exp.value.code === ',') {
+        if (!parentName)
+            throw 'Invalid aggregation expression (parent empty)';
+        exp.children.forEach(function(child) {
+            _execAggregationFunction(child, res, parentName);
+        });
+
+    } else {
+        throw 'Invalid aggregation expression (function args)'; 
+    }
+}
+
+
 export function $filter2mongoFilter(filter: string, schema?: any): any {
-    
+
     let res: any = {};
     var p = OdataParser.parse(filter);
     if (p) {
@@ -305,87 +398,19 @@ export function $filter2mongoFilter(filter: string, schema?: any): any {
     }
     return res;
 }
-/*
-function _extractResult(options, docs, schema, inlineCount, count, aggregation) {
 
-    docs = docs || [];
-    var res = {
-        results: null
-    };
-    if (aggregation) {
-        docs.forEach(function(e) {
-            var cid = e._id;
-            delete e._id;
-            for (var p in cid) {
-                e[p] = cid[p];
-            }
-
-        });
-
-    } else {
-        var props = Object.keys(schema.$properties);
-
-        var dates = [];
-        props.forEach(function(name) {
-            var p = schema.$properties[name];
-            if (p.$type == "date" || p.$type == "datetime") {
-                dates.push(name);
-            }
-
-        });
-
-        docs.forEach(function(e) {
-            dates.forEach(function(name) {
-                var d = e[name];
-                if (d) e[name] = new Date(d).toISOString();
-
-            });
-            delete e._id;
-        });
-        if (options.limit && docs.length == options.limit) docs.pop();
-
-        if (inlineCount) {
-            res.__count = count;
-
-        }
+export function $aggregation2mongoAggregation(aggregation: string, groupby: string, schema?: any): any {
+    let res: any = { _id: null };
+    var p = OdataAggergationParser.parse(aggregation);
+    _execAggregation(p, res);
+    if (groupby) {
+       res._id = {}; 
+       p =  OdataAggergationParser.parse(groupby);
+       _execGroupBy(p, res._id );
     }
-    res.results = docs;
-    return {
-        d: res
-    };
+
+    return res;
 }
 
-function _query2Options(schema, filter, query, aggregation) {
-    var options = {};
-    if (query) {
-        if (query.$skip)
-            options.skip = parseInt(query.$skip, 10);
-        if (query.$top)
-            options.limit = parseInt(query.$top, 10);
-    }
-    if (options.limit) options.limit++;
-
-    var orderBy = (query && query.$orderby) ? query.$orderby : (aggregation ? null : schema.$meta.$defaultOrder);
-    if (orderBy) {
-        var sort = [];
-        orderBy.split(',').forEach(function(value) {
-            value = value.trim();
-            var a = value.split(' ');
-            sort.push([a[0], (a.length > 1 && a[1] == 'desc') ? -1 : 1]);
-
-        });
-        options.sort = sort;
-    }
-    return options;
-
-}
-
-
-module.exports = {
-    filter2mongo: _execOdataFilter,
-    docs2odata: _extractResult,
-    query2options: _query2Options
-};
-*/
 
 
