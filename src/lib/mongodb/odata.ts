@@ -96,8 +96,8 @@ export function queryOptions(query: any, schema: any): any {
         });
     }
     options.count = query.$count === 'true';
-    if (query.aggregation) {
-        options.group = $aggregation2mongoAggregation(query.aggregation, query.groupby, schema);
+    if (query.aggregate) {
+        options.group = $aggregation2mongoAggregation(query.aggregate, query.groupby, schema);
         if (query.having) {
             options.havingFilter = $filter2mongoFilter(query.having);
         }
