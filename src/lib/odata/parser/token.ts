@@ -155,7 +155,7 @@ function _parseOperator(line: string, chars: string, i: number, tokens: Token[],
 }
 
 
-export function tokenize(line: string, operators, identifiers?: string[], grpIdentifiers?: string[]): Token[] {
+export function tokenize(line: string, operators, identifiers?: string[], onidentifier?: any): Token[] {
     let tokens = [];
     let i = 0;
     while (i < line.length) {
@@ -195,12 +195,10 @@ export function tokenize(line: string, operators, identifiers?: string[], grpIde
                     found = true;
                     token.identifierType = 1;
                 }
-                if (!found && grpIdentifiers) {
-                    found = (grpIdentifiers.indexOf(token.value) >= 0);
-                    if (found) 
-                        token.identifierType = 2;
-                }
                 if (!found) throw util.format('Identifier not found. ("%s")', token.value);
+            }
+            if (onidentifier) {
+                onidentifier(token);
             }
         }
     });

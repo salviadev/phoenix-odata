@@ -59,7 +59,7 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
     if (!match && !orList && !andList) return match;
     let d: { left: Expression, right: Expression, c1: Expression, c2: Expression };
     if (exp.type === TokenType.identifier) {
-        if (js) 
+        if (js)
             js.push("this." + exp.value);
     } else if (exp.type === TokenType.literal) {
         if (js) {
@@ -287,15 +287,8 @@ function _execGroupBy(exp: Expression, res: any) {
 function _execAggregationAs(exp: Expression, res: any) {
     if (exp.children[1].type !== TokenType.identifier)
         throw "Aggregation: identifier excepted.";
-    if (exp.children[0].type ===TokenType.identifier) {
-        res[exp.children[1].value] = '$' + exp.children[0].value; 
-        return;     
-    }
-    if (exp.children[0].type ===TokenType.literal) {
-        res[exp.children[1].value] = exp.children[0].value; 
-        return;     
-    }
- 
+
+
     let value = {};
     res[exp.children[1].value] = value;
     _execAggregationFunction(exp.children[0], value);
@@ -367,6 +360,19 @@ export function $filter2mongoFilter(filter: string, schema?: any, options?: any)
     }
     return res;
 }
+export function $having2mongoFilter(filter: string, options?: any): any {
+    let res: any = {};
+    let gids = (options && options.group) ? Object.keys(options.group) : null;
+    var p = OdataParser.parse(filter, null, function(idToken) {
+        if (gids.indexOf(idToken.value) < 0)
+            idToken.value = '_id.' + idToken.value;
+    });
+    if (p) {
+        res = {};
+        _exec(p, res, null, null, null, null);
+    }
+    return res;
+}
 
 export function $aggregation2mongoAggregation(aggregation: string, groupby: string, schema?: any): any {
     let res: any = { _id: null };
@@ -377,7 +383,7 @@ export function $aggregation2mongoAggregation(aggregation: string, groupby: stri
         p = OdataAggergationParser.parse(groupby);
         _execGroupBy(p, res._id);
     }
-    
+
     return res;
 }
 
