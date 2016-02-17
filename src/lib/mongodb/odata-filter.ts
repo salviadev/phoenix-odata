@@ -360,13 +360,6 @@ export function $filter2mongoFilter(filter: string, schema?: any, options?: any)
 
     let res: any = {};
     let identifiers = schema ? pschema.schema.fields(schema) : null;
-    let grpIdentifiers: string[] = null;
-    if (options && options.group) {
-        grpIdentifiers = Object.keys(options.group);
-        let ii = grpIdentifiers.indexOf('_id');
-        if (ii > 0) grpIdentifiers.splice(ii, 1);
-    }
-
     var p = OdataParser.parse(filter, identifiers);
     if (p) {
         res = {};
