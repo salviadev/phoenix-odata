@@ -89,20 +89,31 @@ export function queryOptions(query: any, schema: any): any {
     if (query.$search) {
         options.text = { $search: query.$search }
     }
-    if (query.$orderby) {
-        options.sort = query.$orderby.split(',').map(value => {
-            value = value.trim();
-            let a = value.split(' ');
-            return [a[0].replace(/\//g, '.'), (a.length > 1 && a[1] === 'desc') ? -1 : 1];
-        });
-    }
     options.count = query.$count === 'true';
     if (query.aggregate) {
         options.group = $aggregation2mongoAggregation(query.aggregate, query.groupby, schema);
         if (query.having) {
             options.havingFilter = $having2mongoFilter(query.having, options);
         }
+    } if (query.$orderby) {
+        options.sort = query.$orderby.split(',').map(value => {
+            value = value.trim();
+            let a = value.split(' ');
+            return [a[0].replace(/\//g, '.'), (a.length > 1 && a[1] === 'desc') ? -1 : 1];
+        });
+        if (query.aggregate) {
+            let grpIds = options.group ? Object.keys(options.group) : [];
+            let sort = {}
+            options.sort.forEach(function(el) {
+                let s = el[0];
+                if (grpIds.indexOf(s) < 0) s = '_id.' + s;
+                sort[s] = sort[el[1]];
+            });
+            options.sort = sort;
+        }
+        
     }
+
     return options;
 }
 
