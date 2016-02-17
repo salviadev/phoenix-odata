@@ -12,8 +12,8 @@ export declare class Parser {
     private _functions;
     private _operators;
     constructor(functions: any, loperators: any);
-    parse(str: string): Expression;
-    parseNe(str: string): Expression;
+    parse(str: string, identifiers?: string[], grpIdentifiers?: string[]): Expression;
+    parseNe(str: string, identifiers?: string[], grpIdentifiers?: string[]): Expression;
 }
 export declare var OdataParser: Parser;
 export declare var OdataAggergationParser: Parser;

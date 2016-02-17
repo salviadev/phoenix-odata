@@ -1,5 +1,7 @@
 "use strict";
 
+import * as util from 'util';
+
 export const TokenType = {
     identifier: 'identifier',
     operator: 'operator',
@@ -103,7 +105,7 @@ function _parseDateTime(line: string, chars: string, i: number, tokens: Token[])
 
 
 function _parseWord(line: string, chars: string, i: number, tokens: Token[], operators): number {
-    
+
     let end = i + 1;
     while (end < chars.length && _isWordChar(chars[end])) {
         end++;
@@ -113,7 +115,7 @@ function _parseWord(line: string, chars: string, i: number, tokens: Token[], ope
         return _parseDateTime(line, chars, i, tokens);
     }
     let op = operators.byName(word.toLowerCase());
-    
+
     if (op) {
         tokens.push(new Token(TokenType.operator, op, line, i, null));
     } else {
@@ -151,7 +153,7 @@ function _parseOperator(line: string, chars: string, i: number, tokens: Token[],
 }
 
 
-export function tokenize(line: string, operators): Token[] {
+export function tokenize(line: string, operators, identifiers?: string[], grpIdentifiers?: string[]): Token[] {
     let tokens = [];
     let i = 0;
     while (i < line.length) {
@@ -181,6 +183,22 @@ export function tokenize(line: string, operators): Token[] {
                 break;
         }
     }
+
+    tokens.forEach(token => {
+        if (token.type === TokenType.identifier) {
+            token.value = token.value.replace(/\//g, '.');
+            if (identifiers) {
+                let found = false;
+                if (identifiers.indexOf(token.value) >= 0) {
+                    found = true;
+                }
+                if (!found && grpIdentifiers) {
+                    found = (grpIdentifiers.indexOf(token.value) >= 0)
+                }
+                if (!found) throw util.format('Identifier not found. ("%s")', token.value);
+            }
+        }
+    });
 
     return tokens;
 }

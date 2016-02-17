@@ -12,9 +12,6 @@ function _IEXP() {
     throw new Error('Invalid $filter expression.');
 }
 
-function _embeddedId(id: string): string {
-    return id.split('/').join('.');
-}
 
 function _escaperegex(value: string): string {
     return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
@@ -40,7 +37,6 @@ function _extractIdVal(c1: Expression, c2: Expression, schema: any): { left: Exp
     let res = { left: null, right: null, c1: c1, c2: c2 };
     if (c1.type === TokenType.identifier) {
         res.left = c1;
-        res.left.value = _embeddedId(res.left.value);
         if (c2.type === TokenType.literal) {
             res.right = c2;
             res.right.value = _value(res.left.value, schema, res.right.value, false);
@@ -48,7 +44,6 @@ function _extractIdVal(c1: Expression, c2: Expression, schema: any): { left: Exp
 
     } else if (c2.type === TokenType.identifier) {
         res.left = c2;
-        res.left.value = _embeddedId(res.left.value);
         if (c1.type === TokenType.literal) {
             res.right = c1;
             res.right.value = _value(res.left.value, schema, res.right.value, false);
@@ -64,7 +59,6 @@ function _exec(exp: Expression, match: any, orList, andList: any[], js: string[]
     if (!match && !orList && !andList) return match;
     let d: { left: Expression, right: Expression, c1: Expression, c2: Expression };
     if (exp.type === TokenType.identifier) {
-        exp.value = _embeddedId(exp.value);
         if (checkJs) return false;
         if (js.length) {
             js.push("this." + exp.value);
@@ -313,7 +307,7 @@ function _execGroupBy(exp: Expression, res: any) {
         res[exp.value] = '$' + exp.value;
         return;
     }
-     throw "Invalid aggregation expression.";
+    throw "Invalid aggregation expression.";
 }
 
 
@@ -321,7 +315,7 @@ function _execAggregationAs(exp: Expression, res: any) {
     if (exp.children[1].type !== TokenType.identifier)
         throw "Aggregation: identifier excepted.";
     let value = {};
-    res[_embeddedId(exp.children[1].value)] = value;
+    res[exp.children[1].value] = value;
     _execAggregationFunction(exp.children[0], value);
 }
 
@@ -344,10 +338,10 @@ function _execAggregationFunction(exp: Expression, res: any, parentName?: string
             if (!exp.children.length)
                 throw 'Invalid aggregation expression (no args)';
             if (exp.children[0].type === TokenType.func) {
-                res[exp.value.name] =  {};
+                res[exp.value.name] = {};
                 res = res[exp.value.name];
             } else if (exp.children[0].type === TokenType.operator && exp.children[0].value.code === ',') {
-                res[exp.value.name] =  [];
+                res[exp.value.name] = [];
                 res = res[exp.value.name];
             }
             exp.children.forEach(function(child) {
@@ -363,9 +357,9 @@ function _execAggregationFunction(exp: Expression, res: any, parentName?: string
         } else {
             cv = '$' + exp.value;
         }
-        if (Array.isArray(res))    
+        if (Array.isArray(res))
             res.push(cv);
-        else 
+        else
             res[parentName] = cv;
     } else if (exp.type === TokenType.operator && exp.value.code === ',') {
         if (!parentName)
@@ -375,15 +369,23 @@ function _execAggregationFunction(exp: Expression, res: any, parentName?: string
         });
 
     } else {
-        throw 'Invalid aggregation expression (function args)'; 
+        throw 'Invalid aggregation expression (function args)';
     }
 }
 
 
-export function $filter2mongoFilter(filter: string, schema?: any): any {
+export function $filter2mongoFilter(filter: string, schema?: any, options?: any): any {
 
     let res: any = {};
-    var p = OdataParser.parse(filter);
+    let identifiers = schema ? pschema.schema.fields(schema) : null;
+    let grpIdentifiers: string[] = null;
+    if (options && options.group) {
+        grpIdentifiers = Object.keys(options.group);
+        let ii = grpIdentifiers.indexOf('_id');
+        if (ii > 0) grpIdentifiers.splice(ii, 1);
+    }
+
+    var p = OdataParser.parse(filter, identifiers);
     if (p) {
         let js = [];
         let useJs = _exec(p, res, null, null, js, true, schema);
@@ -404,9 +406,9 @@ export function $aggregation2mongoAggregation(aggregation: string, groupby: stri
     var p = OdataAggergationParser.parse(aggregation);
     _execAggregation(p, res);
     if (groupby) {
-       res._id = {}; 
-       p =  OdataAggergationParser.parse(groupby);
-       _execGroupBy(p, res._id );
+        res._id = {};
+        p = OdataAggergationParser.parse(groupby);
+        _execGroupBy(p, res._id);
     }
 
     return res;

@@ -15,4 +15,4 @@ export declare class Token {
     matches: (code: string) => boolean;
     getRemainingText: () => string;
 }
-export declare function tokenize(line: string, operators: any): Token[];
+export declare function tokenize(line: string, operators: any, identifiers?: string[], grpIdentifiers?: string[]): Token[];

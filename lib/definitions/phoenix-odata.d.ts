@@ -6,7 +6,7 @@ declare module 'phoenix-odata' {
 }
 
 declare module 'phoenix-odata/lib/mongodb/odata-filter' {
-    export function $filter2mongoFilter(filter: string, schema?: any): any;
+    export function $filter2mongoFilter(filter: string, schema?: any, options?: any): any;
     export function $aggregation2mongoAggregation(aggregation: string, groupby: string, schema?: any): any;
 }
 
