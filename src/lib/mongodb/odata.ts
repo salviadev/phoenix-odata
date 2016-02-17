@@ -107,7 +107,7 @@ export function queryOptions(query: any, schema: any): any {
             options.sort.forEach(function(el) {
                 let s = el[0];
                 if (grpIds.indexOf(s) < 0) s = '_id.' + s;
-                sort[s] = sort[el[1]];
+                sort[s] = el[1];
             });
             options.sort = sort;
         }
