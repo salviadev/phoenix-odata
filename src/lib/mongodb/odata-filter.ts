@@ -287,6 +287,15 @@ function _execGroupBy(exp: Expression, res: any) {
 function _execAggregationAs(exp: Expression, res: any) {
     if (exp.children[1].type !== TokenType.identifier)
         throw "Aggregation: identifier excepted.";
+    if (exp.children[0].type ===TokenType.identifier) {
+        res[exp.children[1].value] = '$' + exp.children[0].value; 
+        return;     
+    }
+    if (exp.children[0].type ===TokenType.literal) {
+        res[exp.children[1].value] = exp.children[0].value; 
+        return;     
+    }
+ 
     let value = {};
     res[exp.children[1].value] = value;
     _execAggregationFunction(exp.children[0], value);

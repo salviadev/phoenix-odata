@@ -195,7 +195,7 @@ export class Parser {
         this._functions = functions;
         this._operators = loperators;
     }
-    parse(str: string, identifiers?: string[], grpIdentifiers?: string[]) {
+    parse(str: string, identifiers?: string[]) {
 
         str = str || '';
         str = str.trim();
@@ -203,7 +203,7 @@ export class Parser {
             return null;
         }
 
-        let tokens = tokenize(str, this._operators, identifiers, grpIdentifiers);
+        let tokens = tokenize(str, this._operators, identifiers);
         let tokenIndex = [];
         tokenIndex[0] = 0;
         let exp = _parseExpression(tokens, tokenIndex, _maxPrecedence, this._functions);
@@ -215,7 +215,7 @@ export class Parser {
     parseNe(str: string, identifiers?: string[], grpIdentifiers?: string[]) {
         let that = this;
         try {
-            return that.parse(str, identifiers, grpIdentifiers);
+            return that.parse(str, identifiers);
         } catch (ex) {
             return null;
         }
