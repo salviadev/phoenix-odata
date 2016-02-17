@@ -56,7 +56,13 @@ describe('Odata $filter to mongo Filter', function () {
         });
         it('Complex', function () {
             var mf = $filter2mongoFilter("(contains(tolower(commune), tolower('M')) or contains(tolower(idcommune), tolower('M'))  or contains(tolower(operation), tolower('M')))");
-            assert.deepEqual(mf.$where, '(this.commune.toLowerCase().indexOf("M".toLowerCase()) >= 0) || (this.idcommune.toLowerCase().indexOf("M".toLowerCase()) >= 0) || (this.operation.toLowerCase().indexOf("M".toLowerCase()) >= 0)');
+            assert.deepEqual(mf, {$or: [
+                { $where: '(this.commune.toLowerCase().indexOf("M".toLowerCase()) >= 0)'},
+                { $where: '(this.idcommune.toLowerCase().indexOf("M".toLowerCase()) >= 0)'},
+                { $where: '(this.operation.toLowerCase().indexOf("M".toLowerCase()) >= 0)'} 
+            ]});    
+                
+              
         });
 
     });

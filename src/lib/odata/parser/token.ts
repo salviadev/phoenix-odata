@@ -17,6 +17,7 @@ export class Token {
     public value: any;
     public svalue: string;
     private _offset: number;
+    public identifierType: number;
 
     constructor(type: string, value: any, line: string, offset: number, dataType: string) {
         let that = this;
@@ -25,6 +26,7 @@ export class Token {
         that._line = line;
         that._offset = offset;
         that.dataType = dataType;
+        that.identifierType = 0;
     }
     public matches = function(code: string): boolean {
         let that = this;
@@ -191,9 +193,12 @@ export function tokenize(line: string, operators, identifiers?: string[], grpIde
                 let found = false;
                 if (identifiers.indexOf(token.value) >= 0) {
                     found = true;
+                    token.identifierType = 1;
                 }
                 if (!found && grpIdentifiers) {
-                    found = (grpIdentifiers.indexOf(token.value) >= 0)
+                    found = (grpIdentifiers.indexOf(token.value) >= 0);
+                    if (found) 
+                        token.identifierType = 2;
                 }
                 if (!found) throw util.format('Identifier not found. ("%s")', token.value);
             }

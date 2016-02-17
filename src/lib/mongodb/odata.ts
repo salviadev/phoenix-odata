@@ -1,7 +1,7 @@
 "use strict";
 
 import * as putils from 'phoenix-utils';
-import {$aggregation2mongoAggregation} from './odata-filter';
+import {$aggregation2mongoAggregation, $filter2mongoFilter} from './odata-filter';
 export function queryResult(payload: any[], count?: number): any {
     let res = {
         value: payload || []
@@ -56,8 +56,8 @@ function _extractValue(src: any, dst: any, props: string[]): void {
 
 export function extractResult(payload: any, options): any {
     if (options.group && options.group._id) {
-        options.groupByItems =  options.groupByItems || Object.keys(options.group._id);
-        options.groupByItems.forEach(function(pn){
+        options.groupByItems = options.groupByItems || Object.keys(options.group._id);
+        options.groupByItems.forEach(function(pn) {
             payload[pn] = payload._id[pn];
         });
     }
@@ -70,7 +70,7 @@ export function extractResult(payload: any, options): any {
 
         return res;
     }
-    
+
     return payload;
 }
 
@@ -98,6 +98,9 @@ export function queryOptions(query: any, schema: any): any {
     options.count = query.$count === 'true';
     if (query.aggregation) {
         options.group = $aggregation2mongoAggregation(query.aggregation, query.groupby, schema);
+        if (query.having) {
+            options.havingFilter = $filter2mongoFilter(query.having);
+        }
     }
     return options;
 }

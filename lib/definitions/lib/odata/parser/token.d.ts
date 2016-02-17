@@ -11,6 +11,7 @@ export declare class Token {
     value: any;
     svalue: string;
     private _offset;
+    identifierType: number;
     constructor(type: string, value: any, line: string, offset: number, dataType: string);
     matches: (code: string) => boolean;
     getRemainingText: () => string;
