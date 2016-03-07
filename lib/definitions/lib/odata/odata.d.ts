@@ -1,3 +1,4 @@
+export declare function checkAndParseEntityId(odataUri: OdataParsedUri, schema: any): any;
 export declare function queryResult(payload: any[], count?: number): any;
 export declare function parseSelect(select?: string): string[];
 export interface OdataParsedUri {

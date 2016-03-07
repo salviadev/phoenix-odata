@@ -10,3 +10,4 @@ exports.mongodb = {
 var odata_2 = require('./lib/odata/odata');
 exports.queryResult = odata_2.queryResult;
 exports.parseSelect = odata_2.parseSelect;
+exports.checkAndParseEntityId = odata_2.checkAndParseEntityId;
