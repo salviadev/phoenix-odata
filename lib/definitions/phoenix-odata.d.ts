@@ -7,11 +7,23 @@ declare module 'phoenix-odata' {
         queryOptions: (query: any, schema: any) => any;
         extractResult: (payload: any, options: any) => any;
     };
-    export { queryResult, parseSelect } from 'phoenix-odata/lib/odata/odata';
+    export { queryResult, parseSelect, OdataParsedUri } from 'phoenix-odata/lib/odata/odata';
 }
 
 declare module 'phoenix-odata/lib/odata/odata' {
     export function queryResult(payload: any[], count?: number): any;
     export function parseSelect(select?: string): string[];
+    export interface OdataParsedUri {
+        error?: {
+            message: string;
+            status: number;
+        };
+        query: any;
+        entity?: string;
+        propertyName?: string;
+        entityId?: any;
+        method: string;
+        application: string;
+    }
 }
 
