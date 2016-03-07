@@ -2,21 +2,8 @@
 
 import * as putils from 'phoenix-utils';
 import {$aggregation2mongoAggregation, $filter2mongoFilter, $having2mongoFilter} from './odata-filter';
-export function queryResult(payload: any[], count?: number): any {
-    let res = {
-        value: payload || []
-    }
-    if (count !== undefined)
-        res['@odata.count'] = count;
-    return res;
-}
 
-export function parseSelect(select?: string): string[] {
-    if (!select) return [];
-    return select.split(',').map(value => {
-        return value.trim().replace(/\//g, '.');
-    });
-}
+
 
 function _extractValue(src: any, dst: any, props: string[]): void {
     let cp = props.shift(), last = props.length === 0;

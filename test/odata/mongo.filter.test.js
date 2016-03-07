@@ -1,5 +1,5 @@
 var assert = require("assert");
-var $filter2mongoFilter = require("../../index").$filter2mongoFilter;
+var $filter2mongoFilter = require("../../lib/mongodb/odata-filter").$filter2mongoFilter;
 describe('Odata $filter to mongo Filter', function () {
     describe('#operators()', function () {
         it('Different from (not equal)', function () {

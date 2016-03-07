@@ -19,10 +19,10 @@ describe('Odata $select', function () {
     it('Basic tests', function () {
         var select = "lastName, age";
         var pselect = podata.parseSelect(select);
-        var res = podata.extractResult(src, { select: [] })
+        var res = podata.mongodb.extractResult(src, { select: [] })
 
         assert.deepEqual(res, src);
-        res = podata.extractResult(src, { select: pselect });
+        res = podata.mongodb.extractResult(src, { select: pselect });
 
         var excepted = {
             lastName: "Smith",
@@ -31,25 +31,25 @@ describe('Odata $select', function () {
         assert.deepEqual(excepted, res);
 
         pselect = podata.parseSelect('firstName, address/country');
-        res = podata.extractResult(src, { select: pselect });
-        excepted = {
+        res = podata.mongodb.extractResult(src, { select: pselect });
+        var excepted2 = {
             firstName: "John",
             address: {
                 country: "USA"
             }
         };
 
-        assert.deepEqual(excepted, res);
+        assert.deepEqual(excepted2, res);
         pselect = podata.parseSelect('logs/name');
-        res = podata.extractResult(src, { select: pselect });
-        excepted = {
+        res = podata.mongodb.extractResult(src, { select: pselect });
+        var excepted3 = {
             logs: [
                 { name: "x" }, { name: "y" }
             ]
         };
 
 
-        assert.deepEqual(excepted, res);
+        assert.deepEqual(excepted3, res);
 
     });
 
