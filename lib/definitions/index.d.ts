@@ -4,4 +4,4 @@ export declare var mongodb: {
     queryOptions: (query: any, schema: any) => any;
     extractResult: (payload: any, options: any) => any;
 };
-export { queryResult, parseSelect, checkAndParseEntityId, OdataParsedUri } from './lib/odata/odata';
+export { parseOdataUri, queryResult, parseSelect, checkAndParseEntityId, OdataParsedUri } from './lib/odata/odata';

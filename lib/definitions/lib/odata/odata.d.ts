@@ -13,3 +13,4 @@ export interface OdataParsedUri {
     method: string;
     application: string;
 }
+export declare function parseOdataUri(url: string, method: string): OdataParsedUri;

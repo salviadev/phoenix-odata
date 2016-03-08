@@ -12,4 +12,4 @@ export var mongodb = {
 
 }
 
-export {queryResult, parseSelect, checkAndParseEntityId, OdataParsedUri} from  './lib/odata/odata'; 
+export {parseOdataUri, queryResult, parseSelect, checkAndParseEntityId, OdataParsedUri} from  './lib/odata/odata'; 
