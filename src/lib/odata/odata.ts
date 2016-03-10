@@ -82,27 +82,30 @@ function _extractEntityIdValue(entityId: string): { value: string, isString: boo
 
 function _checkEntityId(oUri: OdataParsedUri): void {
     try {
-        let eid = _extractEntityIdValue(oUri.entityId);
-        if (eid.isString) {
-            oUri.entityId = eid.value;
-            return;
+        oUri.entityId = oUri.entityId + '';
+        if (oUri.entityId === '')
+            throw "entityId is empty."
+        let useArray = (oUri.entityId.charAt(0) === '\'' || (oUri.entityId.indexOf('=') < 0));
+        let pkItems = oUri.entityId.split(',');
+        if (useArray) {
+            oUri.entityId = pkItems.map(function(segment: string) {
+                return _extractEntityIdValue(segment).value;
+            });
         } else {
-            let pkItems = oUri.entityId.split(',');
             let pkMap = {};
-            pkItems.forEach(function(segment: string, index: number) {
+            pkItems.forEach(function(segment: string) {
                 segment = segment.trim();
                 let m = segment.split('=');
                 if (m.length !== 2) {
-                    if (index || pkItems.length > 1)
-                        throw "Invalid entityId."
+                    throw "Invalid entityId."
                 } else {
                     let v = _extractEntityIdValue(m[1]);
                     pkMap[m[0].trim()] = v.value;
                 }
             });
             oUri.entityId = pkMap;
-
         }
+
     } catch (ex) {
         oUri.error = { message: ex.message, status: 400 };
     }
