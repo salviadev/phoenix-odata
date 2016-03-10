@@ -34,13 +34,13 @@ export function checkAndParseEntityId(odataUri: OdataParsedUri, schema: any): an
         if (pkFields.length !== odataUri.entityId.length)
             throwInvalidEntityId();
         pkFields.forEach((pn, index) => {
-            res[pn] = odataUri.entityId[index];
+            res[pn] = string2value(odataUri.entityId[index], schema, pn);
         });
     } else {
         pkFields.forEach(pn => {
             if (odataUri.entityId[pn] === undefined)
                 throwInvalidEntityId();
-            res[pn] = odataUri.entityId[pn];
+            res[pn] = string2value(odataUri.entityId[pn], schema, pn);
         });
 
     }
