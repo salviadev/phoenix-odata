@@ -1,7 +1,7 @@
 "use strict";
 
 import * as putils from 'phoenix-utils';
-import {$aggregation2mongoAggregation, $filter2mongoFilter, $having2mongoFilter} from './odata-filter';
+import {$aggregation2mongoAggregation, $having2mongoFilter} from './odata-filter';
 
 
 
