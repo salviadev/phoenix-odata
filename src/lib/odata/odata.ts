@@ -167,8 +167,8 @@ export function parseOdataUri(url: string, method: string): OdataParsedUri {
 
         });
     }
-    if (query && query.tenantId) 
-        res.tenantId = parseInt(query.tenantId, 10);
+    if (res.query && res.query.tenantId) 
+        res.tenantId = parseInt(res.query.tenantId, 10);
 
     i = url.indexOf(rootOdata);
     if (i < 0) {

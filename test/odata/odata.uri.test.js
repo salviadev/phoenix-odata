@@ -15,17 +15,18 @@ describe('Odata Uri parser', function() {
             propertyName: 'photo'
         };
         assert.deepEqual(p, e);
-        
-        var p1 = podata.parseOdataUri('/master/odata/user(id=1)/photo', 'GET');
+
+        var p1 = podata.parseOdataUri('/master/odata/user(id=1)/photo?tenantId=2', 'GET');
         var e1 = {
             method: 'GET',
-            query: {},
+            query: { tenantId: '2' },
+            tenantId: 2,
             application: 'master',
             entity: 'user',
-            entityId: {id: '1'},
+            entityId: { id: '1' },
             propertyName: 'photo'
         };
         assert.deepEqual(p1, e1);
-        
+
     });
 });
