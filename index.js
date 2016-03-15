@@ -1,6 +1,6 @@
 "use strict";
-var odata_filter_1 = require('./lib/mongodb/odata-filter');
-var odata_1 = require('./lib/mongodb/odata');
+const odata_filter_1 = require('./lib/mongodb/odata-filter');
+const odata_1 = require('./lib/mongodb/odata');
 exports.mongodb = {
     parseFilter: odata_filter_1.$filter2mongoFilter,
     parseAggregation: odata_filter_1.$aggregation2mongoAggregation,

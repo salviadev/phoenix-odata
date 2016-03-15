@@ -6,10 +6,12 @@ export interface OdataParsedUri {
         message: string;
         status: number;
     };
+    tenantId?: number;
     query: any;
     entity?: string;
     propertyName?: string;
     entityId?: any;
+    functionName: string;
     method: string;
     application: string;
 }

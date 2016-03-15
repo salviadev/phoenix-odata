@@ -19,10 +19,12 @@ declare module 'phoenix-odata/lib/odata/odata' {
             message: string;
             status: number;
         };
+        tenantId?: number;
         query: any;
         entity?: string;
         propertyName?: string;
         entityId?: any;
+        functionName: string;
         method: string;
         application: string;
     }

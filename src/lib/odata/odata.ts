@@ -69,10 +69,12 @@ export interface OdataParsedUri {
         message: string,
         status: number
     },
+    tenantId?: number,
     query: any,
     entity?: string,
     propertyName?: string,
     entityId?: any,
+    functionName: string,
     method: string,
     application: string
 }
@@ -126,7 +128,7 @@ function _checkEntityId(oUri: OdataParsedUri): void {
 
 }
 
-//excepted: /odata/{application}/entity?tenantId=value
+//excepted: /{application}/odata/entity?tenantId=value
 
 function _parseEntityId(oUri: OdataParsedUri): void {
     let ii = oUri.entity.indexOf('(');
@@ -165,6 +167,8 @@ export function parseOdataUri(url: string, method: string): OdataParsedUri {
 
         });
     }
+    if (query && query.tenantId) 
+        res.tenantId = parseInt(query.tenantId, 10);
 
     i = url.indexOf(rootOdata);
     if (i < 0) {
@@ -177,22 +181,23 @@ export function parseOdataUri(url: string, method: string): OdataParsedUri {
         return res;
 
     }
+    
+    let before  = url.substring(0, i);
+    let bsegments = before.split('/');
+    res.application = bsegments.pop() || '';
+    
+    
+    
     let s = url.substring(i + root.length) || '';
+
     let segments = s.split('/');
-
-    res.application = segments.shift() || '';
-    if (res.application.indexOf('$applications') === 0) {
-        // list applications
-        res.entity = res.application;
-        res.application = '*';
-
-    } else {
-        if (!res.application) {
-            res.error = { message: invalidUrlAppMissing, status: 400 };
-            return res;
-        }
-        res.entity = segments.shift() || '';
+    
+    //res.application = segments.shift() || '';
+    if (!res.application) {
+        res.error = { message: invalidUrlAppMissing, status: 400 };
+        return res;
     }
+    res.entity = segments.shift() || '';
     if (!res.entity) {
         res.error = { message: invalidUrlAppEntity, status: 400 };
         return res;
@@ -207,7 +212,10 @@ export function parseOdataUri(url: string, method: string): OdataParsedUri {
             return res;
         }
         if (segments.length) {
-            res.propertyName = segments.join('.');
+            if (res.entityId)
+                res.propertyName = segments.join('.');
+            else
+                res.functionName = segments.join('.');
         }
     }
     return res;

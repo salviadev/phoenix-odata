@@ -5,7 +5,7 @@ describe('Odata Uri parser', function() {
 
 
     it('Basic tests', function() {
-        var p = podata.parseOdataUri('/odata/master/user(1)/photo', 'GET');
+        var p = podata.parseOdataUri('/bus/master/odata/user(1)/photo', 'GET');
         var e = {
             method: 'GET',
             query: {},
@@ -16,7 +16,7 @@ describe('Odata Uri parser', function() {
         };
         assert.deepEqual(p, e);
         
-        var p1 = podata.parseOdataUri('/odata/master/user(id=1)/photo', 'GET');
+        var p1 = podata.parseOdataUri('/master/odata/user(id=1)/photo', 'GET');
         var e1 = {
             method: 'GET',
             query: {},
